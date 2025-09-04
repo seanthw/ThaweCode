@@ -1,0 +1,35 @@
+# Dependencies
+*.d
+
+# Compiled object files
+*.o
+*.ko
+*.obj
+*.elf
+
+# Precompiled Headers
+*.gch
+
+# Libraries
+*.lib
+*.a
+*.la
+*.lo
+
+# Shared objects (libraries)
+*.so
+*.so.*
+*.dll
+
+# Executables
+*.exe
+*.out
+*.app
+kilo
+
+# Debug files
+*.dSYM/
+
+# Editor backup files
+*~
+*.swp
