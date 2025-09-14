@@ -170,7 +170,7 @@ int getWindowSize(int *rows, int *cols) {
 
 /** row operations ***/
 
-int editorRowCxToRow(erow *row, int cx) {
+int editorRowCxToRx(erow *row, int cx) {
   int rx = 0;
   int j;
   for (j = 0; j < cx; j++) {
@@ -262,7 +262,10 @@ void abFree(struct abuf *ab) {
 /*** output ***/
 
 void editorScroll() {
-  E.rx = E.cx;
+  E.rx = 0;
+  if (E.cy < E.numrows) {
+    E.rx = editorRowCxToRx(&E.row[E.cy], E.cx);
+  }
 
   if (E.cy < E.rowoff) {
     E.rowoff = E.cy;
