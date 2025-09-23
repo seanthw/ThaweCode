@@ -250,6 +250,16 @@ void editorRowDelChar(erow *row, int at) {
   E.dirty++;
 }
 
+void editorDelChar() {
+  if (E.cy == E.numrows) return;
+
+  erow *row = &E.row[E.cy];
+    if (E.cx > 0) {
+      editorRowDelChar(row, E.cx - 1);
+      E.cx--;
+    }
+}
+
 /*** editor operations ***/
 
 void editorInsertChar(int c) {
