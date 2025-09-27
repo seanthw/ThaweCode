@@ -205,8 +205,8 @@ void editorUpdateSyntax(erow *row) {
 
 int editorSyntaxToColor(int hl) {
   switch (hl) {
-    case HL_NORMAL: return 31;
-    default: return 32;
+    case HL_NUMBER: return 31;
+    default: return 37;
   }
 }
 
