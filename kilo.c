@@ -454,6 +454,8 @@ void editorOpen(char *filename) {
   free(E.filename);
   E.filename = strdup(filename);
 
+  editorSelectSyntaxHighlight();
+
   FILE *fp = fopen(filename, "r");
   if (!fp) die("fopen");
 
@@ -493,6 +495,7 @@ void editorSave() {
         editorSetStatusMessage("%d bytes written to disk", len);
         return;
       }
+      editorSelectSyntaxHighlight();
     };
     close(fd);
   }
