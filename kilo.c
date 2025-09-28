@@ -234,7 +234,9 @@ int getWindowSize(int *rows, int *cols) {
   }
 }
 
-/*** syntax highliting ***/
+/*** syntax 
+      
+      highliting ***/
 
 int is_separator(int c) {
   return isspace(c) || c == '\0' || strchr(",.()+-/*=~%<>[];", c) != NULL;
@@ -258,7 +260,7 @@ void editorUpdateSyntax(erow *row) {
 
   int prev_sep = 1;
   int in_string = 0;
-  int in_comment = 0;
+  int in_comment = (row->idx > 0 && E.row[row->idx - 1].hl_open_comment);
 
   int i = 0;
   while( i < row->rsize) {
@@ -347,6 +349,12 @@ void editorUpdateSyntax(erow *row) {
 
     prev_sep = is_separator(c);
     i++;
+  }
+
+  int changed = (row->hl_open_comment != in_comment);
+  row->hl_open_comment = in_comment;
+  if (changed && row->idx + 1 < E.numrows) {
+    editorUpdateSyntax(&E.row[row->idx + 1]);
   }
 }
 
