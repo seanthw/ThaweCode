@@ -543,13 +543,13 @@ void editorDrawRows(struct abuf *ab) {
   for (y = 0; y < E.screenrows; y++) {
     int filerow = y + E.rowoff;
     if (filerow >= E.numrows) {
-      if ( E.numrows == 0 && y == E.screenrows / 3) {
+      if (E.numrows == 0 && y == E.screenrows / 3) {
         char welcome[80];
         int welcomelen = snprintf(welcome, sizeof(welcome),
-                                  "kilo editor --version %s", KILO_VERSION);
+          "Kilo editor -- version %s", KILO_VERSION);
         if (welcomelen > E.screencols) welcomelen = E.screencols;
         int padding = (E.screencols - welcomelen) / 2;
-        if(padding) {
+        if (padding) {
           abAppend(ab, "~", 1);
           padding--;
         }
@@ -563,18 +563,22 @@ void editorDrawRows(struct abuf *ab) {
       if (len < 0) len = 0;
       if (len > E.screencols) len = E.screencols;
       char *c = &E.row[filerow].render[E.coloff];
+      unsigned char *hl = &E.row[filerow].hl[E.coloff];
       int j;
       for (j = 0; j < len; j++) {
-        if (isdigit(c[j])) {
-          abAppend(ab, "\x1b[31m", 5);
-          abAppend(ab, &c[j], 1);
+        if (hl[j] == HL_NORMAL) {
           abAppend(ab, "\x1b[39m", 5);
+          abAppend(ab, &c[j], 1);
         } else {
+          int color = editorSyntaxToColor(hl[j]);
+          char buf[16];
+          int clen = snprintf(buf, sizeof(buf), "\x1b[%dm", color);
+          abAppend(ab, buf, clen);
           abAppend(ab, &c[j], 1);
         }
       }
+      abAppend(ab, "\x1b[39m", 5);
     }
-
     abAppend(ab, "\x1b[K", 3);
     abAppend(ab, "\r\n", 2);
   }
