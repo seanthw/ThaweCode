@@ -46,7 +46,8 @@ enum editorHighlight {
   HL_KEYWORD2,
   HL_STRING,
   HL_NUMBER,
-  HL_MATCH
+  HL_MATCH,
+  HL_GUTTER
 };
 
 #define HL_HIGHLIGHT_NUMBERS (1<<0)
@@ -365,6 +366,7 @@ int editorSyntaxToColor(int hl) {
     case HL_STRING: return 35;
     case HL_NUMBER: return 31;
     case HL_MATCH: return 34;
+    case HL_GUTTER: return 90;
     default: return 37;
   }
 }
@@ -774,7 +776,11 @@ void editorDrawRows(struct abuf *ab) {
       int j;
       char linenum[20];
       int linenum_len = snprintf(linenum, sizeof(linenum), "%4d ", filerow + 1);
+      char buf[16];
+      int clen = snprintf(buf, sizeof(buf), "\x1b[%dm", editorSyntaxToColor(HL_GUTTER));
+      abAppend(ab, buf, clen);
       abAppend(ab, linenum, linenum_len);
+      abAppend(ab, "\x1b[39m", 5);
       for (j = 0; j < len; j++) {
         if (iscntrl(c[j])) {
           char sym = (c[j] <= 26) ? '@' + c[j] : '?';
