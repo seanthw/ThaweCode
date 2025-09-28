@@ -234,9 +234,7 @@ int getWindowSize(int *rows, int *cols) {
   }
 }
 
-/*** syntax 
-      
-      highliting ***/
+/*** syntax highliting ***/
 
 int is_separator(int c) {
   return isspace(c) || c == '\0' || strchr(",.()+-/*=~%<>[];", c) != NULL;
