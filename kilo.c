@@ -730,7 +730,6 @@ void editorScroll() {
   if (E.cy < E.numrows) {
     E.rx = editorRowCxToRx(&E.row[E.cy], E.cx);
   }
-
   if (E.cy < E.rowoff) {
     E.rowoff = E.cy;
   }
@@ -740,8 +739,8 @@ void editorScroll() {
   if (E.rx < E.coloff) {
     E.coloff = E.rx;
   }
-  if (E.rx >= E.coloff + E.screencols) {
-    E.coloff = E.rx - E.screencols + 1;
+  if (E.rx >= E.coloff + E.screencols - 5) {
+    E.coloff = E.rx - (E.screencols - 5) + 1;
   }
 }
 
@@ -773,6 +772,9 @@ void editorDrawRows(struct abuf *ab) {
       unsigned char *hl = &E.row[filerow].hl[E.coloff];
       int current_color = -1;
       int j;
+      char linenum[20];
+      int linenum_len = snprintf(linenum, sizeof(linenum), "%4d ", filerow + 1);
+      abAppend(ab, linenum, linenum_len);
       for (j = 0; j < len; j++) {
         if (iscntrl(c[j])) {
           char sym = (c[j] <= 26) ? '@' + c[j] : '?';
@@ -841,23 +843,17 @@ void editorDrawMessageBar(struct abuf *ab) {
 
 void editorRefreshScreen() {
   editorScroll();
-
   struct abuf ab = ABUF_INIT;
-
   abAppend(&ab, "\x1b[?25l", 6);
   abAppend(&ab, "\x1b[H", 3);
-
   editorDrawRows(&ab);
   editorDrawStatusBar(&ab);
   editorDrawMessageBar(&ab);
-
   char buf[32];
   snprintf(buf, sizeof(buf), "\x1b[%d;%dH", (E.cy - E.rowoff) + 1,
-                                            (E.rx - E.coloff) + 1);
+                                            (E.rx - E.coloff) + 6);
   abAppend(&ab, buf, strlen(buf));
-
   abAppend(&ab, "\x1b[?25h", 6);
-
   write(STDOUT_FILENO, ab.b, ab.len);
   abFree(&ab);
 }
