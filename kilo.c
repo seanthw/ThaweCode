@@ -485,6 +485,7 @@ void editorSave() {
       editorSetStatusMessage("Save aborted");
       return;
     }
+    editorSelectSyntaxHighlight();
   }
 
   int len;
@@ -500,7 +501,6 @@ void editorSave() {
         editorSetStatusMessage("%d bytes written to disk", len);
         return;
       }
-      editorSelectSyntaxHighlight();
     };
     close(fd);
   }
