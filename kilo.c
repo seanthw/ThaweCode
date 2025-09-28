@@ -215,7 +215,7 @@ int getWindowSize(int *rows, int *cols) {
 
 /*** syntax highliting ***/
 
-int is_seperator(int c) {
+int is_separator(int c) {
   return isspace(c) || c == '\0' || strchr(",.()+-/*=~%<>[];", c) != NULL;
 }
 
@@ -242,7 +242,7 @@ void editorUpdateSyntax(erow *row) {
       }
     }
 
-    prev_sep = is_seperator(c);
+    prev_sep = is_separator(c);
     i++;
   }
 }
