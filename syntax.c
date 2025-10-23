@@ -12,6 +12,21 @@ char *C_HL_keywords[] = {
   "void|", NULL
 };
 
+char *SH_HL_extensions[] = {".sh", ".bash", NULL};
+char *SH_HL_keywords[] = {
+  /* Core Keywords */
+  "if", "then", "else", "elif", "fi", "case", "esac", "for",
+  "select", "while", "until", "do", "done", "in", "function", "time",
+  
+  /* Common Built-in Commands & Operators (secondary highlight) */
+  "echo|", "read|", "let|", "export|", "unset|", "readonly|", "declare|",
+  "local|", "exit|", "return|", "true|", "false|", "set|", "shift|",
+  "source|", "trap|", "test|", "type|", "ulimit|", "umask|", "alias|",
+  "unalias|", "cd|", "pwd|", "history|", "kill|", "jobs|", "bg|", "fg|",
+  "getopts|", "printf|",
+  NULL
+};
+
 char *PY_HL_extensions[] = {".py", NULL};
 char *PY_HL_keywords[] = {
   "and", "as", "assert", "break", "class", "continue", "def", "del",
@@ -47,6 +62,13 @@ struct editorSyntax HLDB[] = {
     C_HL_extensions,
     C_HL_keywords,
     "//", "/*", "*/",
+    HL_HIGHLIGHT_NUMBERS | HL_HIGHLIGHT_STRINGS
+  },
+  {
+    "sh",
+    SH_HL_extensions,
+    SH_HL_keywords,
+    "#", "", "",
     HL_HIGHLIGHT_NUMBERS | HL_HIGHLIGHT_STRINGS
   },
   {
