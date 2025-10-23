@@ -51,6 +51,17 @@ typedef struct erow {
   int hl_open_comment;
 } erow;
 
+enum {
+  COLOR_PAIR_NORMAL = 1,
+  COLOR_PAIR_COMMENT,
+  COLOR_PAIR_KEYWORD1,
+  COLOR_PAIR_KEYWORD2,
+  COLOR_PAIR_STRING,
+  COLOR_PAIR_NUMBER,
+  COLOR_PAIR_MATCH,
+  COLOR_PAIR_GUTTER
+};
+
 struct editorConfig {
   int cx, cy;
   int rx;
@@ -87,13 +98,14 @@ void die(const char *s) {
 }
 
 void initColors() {
-  init_pair(COLOR_CYAN, COLOR_CYAN, COLOR_BLACK);
-  init_pair(COLOR_YELLOW, COLOR_YELLOW, COLOR_BLACK);
-  init_pair(COLOR_GREEN, COLOR_GREEN, COLOR_BLACK);
-  init_pair(COLOR_MAGENTA, COLOR_MAGENTA, COLOR_BLACK);
-  init_pair(COLOR_RED, COLOR_RED, COLOR_BLACK);
-  init_pair(COLOR_BLUE, COLOR_BLUE, COLOR_BLACK);
-  init_pair(COLOR_WHITE, COLOR_WHITE, COLOR_BLACK);
+  init_pair(COLOR_PAIR_COMMENT, COLOR_CYAN, COLOR_BLACK);
+  init_pair(COLOR_PAIR_KEYWORD1, COLOR_YELLOW, COLOR_BLACK);
+  init_pair(COLOR_PAIR_KEYWORD2, COLOR_GREEN, COLOR_BLACK);
+  init_pair(COLOR_PAIR_STRING, COLOR_MAGENTA, COLOR_BLACK);
+  init_pair(COLOR_PAIR_NUMBER, COLOR_RED, COLOR_BLACK);
+  init_pair(COLOR_PAIR_MATCH, COLOR_BLUE, COLOR_BLACK);
+  init_pair(COLOR_PAIR_NORMAL, COLOR_WHITE, COLOR_BLACK);
+  init_pair(COLOR_PAIR_GUTTER, COLOR_WHITE, COLOR_BLACK);
 }
 
 int editorReadKey() {
@@ -250,14 +262,14 @@ void editorUpdateSyntax(erow *row) {
 int editorSyntaxToColor(int hl) {
   switch (hl) {
     case HL_COMMENT:
-    case HL_MLCOMMENT: return COLOR_CYAN;
-    case HL_KEYWORD1: return COLOR_YELLOW;
-    case HL_KEYWORD2: return COLOR_GREEN;
-    case HL_STRING: return COLOR_MAGENTA;
-    case HL_NUMBER: return COLOR_RED;
-    case HL_MATCH: return COLOR_BLUE;
-    case HL_GUTTER: return COLOR_WHITE;
-    default: return COLOR_WHITE;
+    case HL_MLCOMMENT: return COLOR_PAIR_COMMENT;
+    case HL_KEYWORD1: return COLOR_PAIR_KEYWORD1;
+    case HL_KEYWORD2: return COLOR_PAIR_KEYWORD2;
+    case HL_STRING: return COLOR_PAIR_STRING;
+    case HL_NUMBER: return COLOR_PAIR_NUMBER;
+    case HL_MATCH: return COLOR_PAIR_MATCH;
+    case HL_GUTTER: return COLOR_PAIR_GUTTER;
+    default: return COLOR_PAIR_NORMAL;
   }
 }
 
@@ -275,12 +287,12 @@ void editorSelectSyntaxHighlight() {
       if ((is_ext && ext && !strcmp(ext, s->filematch[i])) ||
           (!is_ext && strstr(E.filename, s->filematch[i]))) {
         E.syntax = s;
-        return;
 
         int filerow;
         for (filerow = 0; filerow < E.numrows; filerow++) {
           editorUpdateSyntax(&E.row[filerow]);
         }
+        return;
       }
       i++;
     }
@@ -650,9 +662,9 @@ void editorDrawRows() {
       char *c = &E.row[filerow].render[E.coloff];
       unsigned char *hl = &E.row[filerow].hl[E.coloff];
 
-      attron(COLOR_PAIR(editorSyntaxToColor(HL_GUTTER)));
+      attron(A_DIM | COLOR_PAIR(editorSyntaxToColor(HL_GUTTER)));
       mvprintw(y, 0, "%4d ", filerow + 1);
-      attroff(COLOR_PAIR(editorSyntaxToColor(HL_GUTTER)));
+      attroff(A_DIM | COLOR_PAIR(editorSyntaxToColor(HL_GUTTER)));
 
       for (int j = 0; j < len; j++) {
         attron(COLOR_PAIR(editorSyntaxToColor(hl[j])));

@@ -9,7 +9,10 @@ char *C_HL_keywords[] = {
   "struct", "union", "typedef", "static", "enum", "class", "case",
 
   "int|", "long|", "double|", "float|", "char|", "unsigned|", "signed|",
-  "void|", NULL
+  "void|",
+
+  "#include|", "#define|", "#if|", "#ifdef|", "#ifndef|", "#else|", "#elif|",
+  "#endif|", "#undef|", "#pragma|", NULL
 };
 
 char *SH_HL_extensions[] = {".sh", ".bash", NULL};
