@@ -16,12 +16,11 @@
 #include <ncurses.h>
 #include <unistd.h>
 #include "syntax.h"
+#include "config.h"
 
 /*** defines ***/
 
 #define KILO_VERSION "0.0.1"
-#define KILO_TAB_STOP 8
-#define KILO_QUIT_TIMES 3
 
 #define CTRL_KEY(k) ((k) & 0x1f)
 
@@ -40,43 +39,6 @@ enum editorKey {
 
 
 /*** data ***/
-
-typedef struct erow {
-  int idx;
-  int size;
-  int rsize;
-  char *chars;
-  char *render;
-  unsigned char *hl;
-  int hl_open_comment;
-} erow;
-
-enum {
-  COLOR_PAIR_NORMAL = 1,
-  COLOR_PAIR_COMMENT,
-  COLOR_PAIR_KEYWORD1,
-  COLOR_PAIR_KEYWORD2,
-  COLOR_PAIR_STRING,
-  COLOR_PAIR_NUMBER,
-  COLOR_PAIR_MATCH,
-  COLOR_PAIR_GUTTER
-};
-
-struct editorConfig {
-  int cx, cy;
-  int rx;
-  int rowoff;
-  int coloff;
-  int screenrows;
-  int screencols;
-  int numrows;
-  erow *row;
-  int dirty;
-  char *filename;
-  char statusmsg[80];
-  time_t statusmsg_time;
-  struct editorSyntax *syntax;
-};
 
 struct editorConfig E;
 
@@ -306,7 +268,7 @@ int editorRowCxToRx(erow *row, int cx) {
   int j;
   for (j = 0; j < cx; j++) {
     if (row->chars[j] == '\t')
-      rx += (KILO_TAB_STOP - 1) - (rx % KILO_TAB_STOP);
+      rx += (E.tab_stop - 1) - (rx % E.tab_stop);
     rx++;
   }
   return rx;
@@ -317,7 +279,7 @@ int editorRowRxToCx(erow *row, int rx) {
   int cx;
   for (cx = 0; cx < row->size; cx++) {
     if (row->chars[cx] == '\t')
-      cur_rx += (KILO_TAB_STOP - 1) - (cur_rx % KILO_TAB_STOP);
+      cur_rx += (E.tab_stop - 1) - (cur_rx % E.tab_stop);
     cur_rx++;
 
     if (cur_rx > rx) return cx;
@@ -332,13 +294,13 @@ void editorUpdateRow(erow *row) {
     if (row->chars[j] == '\t') tabs++;
 
   free(row->render);
-  row->render = malloc(row->size + tabs*(KILO_TAB_STOP - 1) + 1);
+  row->render = malloc(row->size + tabs*(E.tab_stop - 1) + 1);
 
   int idx = 0;
   for (j = 0; j < row->size; j++) {
     if (row->chars[j] == '\t') {
       row->render[idx++] = ' ';
-      while (idx % KILO_TAB_STOP != 0) row->render[idx++] = ' ';
+      while (idx % E.tab_stop != 0) row->render[idx++] = ' ';
     } else {
       row->render[idx++] = row->chars[j];
     }
@@ -796,7 +758,7 @@ void editorMoveCursor(int key) {
 }
 
 void editorProcessKeypress() {
-  static int quit_times = KILO_QUIT_TIMES;
+  static int quit_times = 3; // This will be updated by the first non-quit keypress
 
   int c = editorReadKey();
 
@@ -874,7 +836,10 @@ void editorProcessKeypress() {
       break;
   }
 
-  quit_times = KILO_QUIT_TIMES;
+  // Reset quit_times on any keypress that isn't the quit key
+  if (c != CTRL_KEY('q')) {
+    quit_times = E.quit_times;
+  }
 }
 
 /*** init ***/
@@ -893,6 +858,10 @@ void initEditor() {
   E.statusmsg_time = 0;
   E.syntax = NULL;
 
+  // --- SET CONFIG DEFAULTS ---
+  E.tab_stop = 8;
+  E.quit_times = 3;
+
   if (getWindowSize(&E.screenrows, &E.screencols) == -1) die("getWindowSize");
   E.screenrows -= 2;
 }
@@ -906,6 +875,7 @@ int main(int argc, char *argv[]) {
   initColors();
 
   initEditor();
+  load_config();
   if (argc >= 2) {
     editorOpen(argv[1]);
   }
