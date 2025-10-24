@@ -603,17 +603,15 @@ void editorDrawRows() {
     int filerow = y + E.rowoff;
     if (filerow >= E.numrows) {
       if (E.numrows == 0 && y == E.screenrows / 3) {
-        char welcome [80];
+        char welcome[80];
         int welcomelen = snprintf(welcome, sizeof(welcome),
                                   "Kilo editor -- version %s", KILO_VERSION);
-        if (welcomelen > E.screenrows) welcomelen = E.screenrows;
-        int padding = (E.screenrows - welcomelen) / 2;
+        if (welcomelen > E.screencols) welcomelen = E.screencols;
+        int padding = (E.screencols - welcomelen) / 2;
         if (padding) {
           mvprintw(y, 0, "~");
-          padding--;
         }
-        while (padding--) mvprintw(y, padding, " ");
-        mvprintw(y, (E.screencols - welcomelen)/2, "%s", welcome);
+        mvprintw(y, padding, "%s", welcome);
       } else {
         mvprintw(y, 0, "~");
       }
