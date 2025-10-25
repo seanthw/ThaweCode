@@ -418,6 +418,74 @@ void editorDelChar() {
   }
 }
 
+void editorCopy() {
+  if (!E.selection_active) return;
+
+  free(E.clipboard);
+  E.clipboard = NULL;
+
+  int start_row, start_col, end_row, end_col;
+  if (E.cy < E.mark_cy || (E.cy == E.mark_cy && E.cx < E.mark_cx)) {
+    start_row = E.cy;
+    start_col = E.cx;
+    end_row   = E.mark_cy;
+    end_col   = E.mark_cx;
+  } else {
+    start_row = E.mark_cy;
+    start_col   = E.mark_cx;
+    end_row   = E.cy;
+    end_col   = E.cx;
+  }
+
+  int total_len = 0;
+
+  for (int i = start_row; i <= end_row; i++) {
+    erow *row = &E.row[i];
+    int row_start = (i == start_row) ? start_col : 0;
+    int row_end = (i == end_row) ? end_col : row->size;
+    total_len += (row_end - row_start);
+    if (i < end_row) total_len++;
+  }
+
+  if (total_len == 0) return;
+
+  E.clipboard = malloc(total_len + 1);
+  if (!E.clipboard) return;
+
+  char *p = E.clipboard;
+
+  for (int i = start_row; i <= end_row; i++) {
+    erow *row = &E.row[i];
+    int row_start = (i == start_row) ? start_col : 0;
+    int row_end = (i == end_row) ? end_col : row->size;
+    int row_len = row_end - row_start;
+
+    memcpy(p, &row->chars[row_start], row_len);
+    p += row_len;
+
+    if (i < end_row) {
+      *p = '\n';
+      p++;
+    }
+  }
+  *p = '\0'; // Null-terminate the string
+
+  // Deactivate selection and show a message
+  E.selection_active = 0;
+  editorSetStatusMessage("%d bytes copied to clipboard.", total_len);
+}
+
+void editorPaste() {
+  if (E.clipboard == NULL) return;
+
+  for (int i = 0; E.clipboard[i] != '\0'; i++) {
+    if (E.clipboard[i] == '\n') {
+      editorInsertNewline();
+    } else {
+      editorInsertChar(E.clipboard[i]);
+    }
+  }
+}
 
 /*** file i/o ***/
 
@@ -804,7 +872,6 @@ void editorProcessKeypress() {
       editorInsertNewline();
       break;
 
-
     case CTRL_KEY(' '): // Ctrl+Space
       if (E.selection_active) {
         E.selection_active = 0;
@@ -815,6 +882,14 @@ void editorProcessKeypress() {
         E.mark_cy = E.cy;
         editorSetStatusMessage("Selection mark set. Move cursor to select. Ctrl+Space to cancel.");
       }
+      break;
+
+    case CTRL_KEY('k'):
+      editorCopy();
+      break;
+
+    case CTRL_KEY('p'):
+      editorPaste();
       break;
 
     case CTRL_KEY('q'):
