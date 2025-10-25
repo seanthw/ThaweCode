@@ -26,6 +26,16 @@ If the file doesn't exist, it will be created. If you run `./kilo` without a fil
 *   **`Ctrl-F`**: Search for text within the file.
     *   Use `Enter` or arrow keys to navigate between matches.
     *   Press `Esc` to cancel the search.
+
+#### Text Editing
+
+*   **`Ctrl+Space`**: Toggle selection mode. Press once to set the selection mark, move the cursor to select text, and press again to cancel.
+*   **`Ctrl+X`**: Cut the selected text.
+*   **`Ctrl+K`**: Copy the selected text to the internal clipboard.
+*   **`Ctrl+P`**: Paste the text from the clipboard.
+
+#### Navigation
+
 *   **Arrow Keys**: Move the cursor.
 *   **`Home` / `End`**: Move cursor to the start/end of the current line.
 *   **`Page Up` / `Page Down`**: Move the cursor up or down by one screen length.
