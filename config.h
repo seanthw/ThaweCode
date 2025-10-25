@@ -39,13 +39,15 @@ struct editorConfig {
   char statusmsg[80];
   time_t statusmsg_time;
   struct editorSyntax *syntax;
-  // --- ADDED CONFIG FIELDS ---
   int tab_stop;
   int quit_times;
+  int mark_cx, mark_cy;       // Position of the selcetion mark
+  int selection_active;       // Is selection active?
+  char *clipboard;            // Stores copied text
 };
 
 extern struct editorConfig E;
 
 void load_config();
 
-#endif // CONFIG_H
+#endif

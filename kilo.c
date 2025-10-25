@@ -597,6 +597,38 @@ void editorScroll() {
   }
 }
 
+int is_char_in_selection(int filerow, int char_idx) {
+  if (!E.selection_active) return 0;
+
+  int start_row, start_col, end_row, end_col;
+
+  if (E.cy < E.mark_cy || (E.cy == E.mark_cy && E.cx < E.mark_cx)) {
+    // Cursor is before the mark
+    start_row = E.cy;
+    start_col = E.cx;
+    end_row   = E.mark_cy;
+    end_col   = E.mark_cx;
+  } else {
+    // Mark is before the cursor
+    start_row = E.mark_cy;
+    start_col = E.mark_cx;
+    end_row   = E.cy;
+    end_col   = E.cx;
+  }
+
+  if (filerow < start_row || filerow > end_row) {
+    return 0;
+  }
+  if (filerow == start_row && char_idx < start_col) {
+    return 0;
+  }
+  if (filerow == end_row && char_idx >= end_col) {
+    return 0;
+  }
+
+  return 1;
+}
+
 void editorDrawRows() {
   int y;
   for (y = 0; y < E.screenrows; y++) {
@@ -627,9 +659,15 @@ void editorDrawRows() {
       attroff(A_DIM | COLOR_PAIR(editorSyntaxToColor(HL_GUTTER)));
 
       for (int j = 0; j < len; j++) {
+        if (is_char_in_selection(filerow, E.coloff + j)) {
+          attron(A_REVERSE);
+        }
+
         attron(COLOR_PAIR(editorSyntaxToColor(hl[j])));
         mvprintw(y, j + 5, "%c", c[j]);
         attroff(COLOR_PAIR(editorSyntaxToColor(hl[j])));
+
+        attroff(A_REVERSE);
       }
     }
   }
@@ -766,6 +804,19 @@ void editorProcessKeypress() {
       editorInsertNewline();
       break;
 
+
+    case CTRL_KEY(' '): // Ctrl+Space
+      if (E.selection_active) {
+        E.selection_active = 0;
+        editorSetStatusMessage("Selection cancelled.");
+      } else {
+        E.selection_active = 1;
+        E.mark_cx = E.cx;
+        E.mark_cy = E.cy;
+        editorSetStatusMessage("Selection mark set. Move cursor to select. Ctrl+Space to cancel.");
+      }
+      break;
+
     case CTRL_KEY('q'):
       if (E.dirty && quit_times > 0) {
         editorSetStatusMessage("WARNING!!! File has unsaved changes. "
@@ -855,6 +906,11 @@ void initEditor() {
   E.statusmsg[0] = '\0';
   E.statusmsg_time = 0;
   E.syntax = NULL;
+
+  E.mark_cx = 0;
+  E.mark_cy = 0;
+  E.selection_active = 0;
+  E.clipboard = NULL;
 
   // --- SET CONFIG DEFAULTS ---
   E.tab_stop = 8;
