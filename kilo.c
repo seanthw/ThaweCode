@@ -360,10 +360,13 @@ void editorRowInsertChar(erow *row, int at, int c) {
   E.dirty++;
 }
 
-void editorRowDelChar(erow *row, int at) {
+void editorRowDelChar(erow *row, int at, int count) {
   if (at < 0 || at >= row->size) return;
-  memmove(&row->chars[at], &row->chars[at + 1], row->size - at);
-  row->size--;
+  if (at + count > row->size) count = row->size - at;
+
+  memmove(&row->chars[at], &row->chars[at + count], row->size - at - count);
+  row->size -= count;
+  row->chars[row->size] = '\0';
   editorUpdateRow(row);
   E.dirty++;
 }
@@ -408,7 +411,7 @@ void editorDelChar() {
 
   erow *row = &E.row[E.cy];
   if (E.cx > 0) {
-    editorRowDelChar(row, E.cx - 1);
+    editorRowDelChar(row, E.cx - 1, 1);
     E.cx--;
   } else {
     E.cx = E.row[E.cy - 1].size;
@@ -470,9 +473,46 @@ void editorCopy() {
   }
   *p = '\0'; // Null-terminate the string
 
-  // Deactivate selection and show a message
-  E.selection_active = 0;
   editorSetStatusMessage("%d bytes copied to clipboard.", total_len);
+}
+
+void editorDeleteSelection() {
+  if (!E.selection_active) return;
+
+  // Determine start and end points
+  int start_row, start_col, end_row, end_col;
+  if (E.cy < E.mark_cy || (E.cy == E.mark_cy && E.cx < E.mark_cx)) {
+    start_row = E.cy; start_col = E.cx;
+    end_row = E.mark_cy; end_col = E.mark_cx;
+  } else {
+    start_row = E.mark_cy; start_col = E.mark_cx;
+    end_row = E.cy; end_col = E.cx;
+  }
+
+  E.cy = start_row;
+  E.cx = start_col;
+
+  if (start_row == end_row) {
+    // Single-line deletion
+    editorRowDelChar(&E.row[start_row], start_col, end_col - start_col);
+  } else {
+    // Multi-line deletion
+    erow *first_row = &E.row[start_row];
+    erow *last_row = &E.row[end_row];
+
+    editorRowDelChar(first_row, start_col, first_row->size - start_col);
+
+    editorRowDelChar(last_row, 0, end_col);
+
+    editorRowAppendString(first_row, last_row->chars, last_row->size);
+
+    for (int i = end_row; i > start_row; i--) {
+      editorDelRow(i);
+    }
+  }
+
+  E.selection_active = 0;
+  E.dirty++;
 }
 
 void editorPaste() {
@@ -485,6 +525,12 @@ void editorPaste() {
       editorInsertChar(E.clipboard[i]);
     }
   }
+}
+
+void editorCut() {
+  if (!E.selection_active) return;
+  editorCopy();
+  editorDeleteSelection();
 }
 
 /*** file i/o ***/
@@ -886,10 +932,15 @@ void editorProcessKeypress() {
 
     case CTRL_KEY('k'):
       editorCopy();
+      E.selection_active = 0;
       break;
 
     case CTRL_KEY('p'):
       editorPaste();
+      break;
+
+    case CTRL_KEY('x'):
+      editorCut();
       break;
 
     case CTRL_KEY('q'):
