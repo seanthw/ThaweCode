@@ -935,7 +935,7 @@ void editorProcessKeypress() {
       E.selection_active = 0;
       break;
 
-    case CTRL_KEY('p'):
+    case CTRL_KEY('v'):
       editorPaste();
       break;
 
@@ -1061,7 +1061,7 @@ int main(int argc, char *argv[]) {
   }
 
   editorSetStatusMessage(
-    "HELP: Ctrl-S = save | Ctrl-Q = quit | Ctrl-F = find");
+    "HELP: Ctrl-S = save | Ctrl-Q = quit | Ctrl-F = find | Ctrl-X = cut | Ctrl-K = copy | Ctrl-V = paste");
 
   while (1) {
     editorRefreshScreen();

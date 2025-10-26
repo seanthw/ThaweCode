@@ -32,7 +32,7 @@ If the file doesn't exist, it will be created. If you run `./ThaweCode` without 
 *   **`Ctrl+Space`**: Toggle selection mode. Press once to set the selection mark, move the cursor to select text, and press again to cancel.
 *   **`Ctrl+X`**: Cut the selected text.
 *   **`Ctrl+K`**: Copy the selected text to the internal clipboard.
-*   **`Ctrl+P`**: Paste the text from the clipboard.
+*   **`Ctrl+V`**: Paste the text from the clipboard.
 
 #### Navigation
 
