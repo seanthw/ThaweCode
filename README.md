@@ -13,10 +13,10 @@ make
 To open a file, provide its name as an argument:
 
 ```sh
-./kilo <filename>
+./ThaweCode <filename>
 ```
 
-If the file doesn't exist, it will be created. If you run `./kilo` without a filename, you will start with an empty, unnamed buffer.
+If the file doesn't exist, it will be created. If you run `./ThaweCode` without a filename, you will start with an empty, unnamed buffer.
 
 ### Keybindings
 
@@ -45,9 +45,9 @@ If the file doesn't exist, it will be created. If you run `./kilo` without a fil
 
 ## Configuration
 
-You can customize the editor's behavior by creating a configuration file named `.kilorc` in your home directory.
+You can customize the editor's behavior by creating a configuration file named `.ThaweCoderc` in your home directory.
 
-**Location:** The file must be placed at `~/.kilorc` (e.g., `/home/youruser/.kilorc`).
+**Location:** The file must be placed at `~/.ThaweCoderc` (e.g., `/home/youruser/.ThaweCoderc`).
 
 The file uses a simple `key = value` format. Lines beginning with `#` are treated as comments and are ignored.
 
@@ -58,9 +58,9 @@ The file uses a simple `key = value` format. Lines beginning with `#` are treate
 | `tab-stop`   | The number of spaces to display for a tab character.         | `8`           |
 | `quit-times` | The number of times you must press `Ctrl-Q` to quit when there are unsaved changes. | `3`           |
 
-If the `.kilorc` file is not found, or if a specific key is not present, the editor will use these default values.
+If the `.ThaweCoderc` file is not found, or if a specific key is not present, the editor will use these default values.
 
-### Example `.kilorc` File
+### Example `.ThaweCoderc` File
 
 ```
 # This is a comment.

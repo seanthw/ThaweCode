@@ -20,7 +20,7 @@
 
 /*** defines ***/
 
-#define KILO_VERSION "0.1.0"
+#define THAWECODE_VERSION "0.1.0"
 
 #define CTRL_KEY(k) ((k) & 0x1f)
 
@@ -751,7 +751,7 @@ void editorDrawRows() {
       if (E.numrows == 0 && y == E.screenrows / 3) {
         char welcome[80];
         int welcomelen = snprintf(welcome, sizeof(welcome),
-                                  "Kilo editor -- version %s", KILO_VERSION);
+                                  "ThaweCode editor -- version %s", THAWECODE_VERSION);
         if (welcomelen > E.screencols) welcomelen = E.screencols;
         int padding = (E.screencols - welcomelen) / 2;
         if (padding) {
