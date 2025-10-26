@@ -57,6 +57,7 @@ The file uses a simple `key = value` format. Lines beginning with `#` are treate
 |--------------|--------------------------------------------------------------|---------------|
 | `tab-stop`   | The number of spaces to display for a tab character.         | `8`           |
 | `quit-times` | The number of times you must press `Ctrl-Q` to quit when there are unsaved changes. | `3`           |
+| `soft-tabs`  | Use spaces instead of tabs. Set to `1` to enable.            | `0`           |
 
 If the `.thawe_coderc` file is not found, or if a specific key is not present, the editor will use these default values.
 

@@ -20,7 +20,7 @@
 
 /*** defines ***/
 
-#define THAWECODE_VERSION "0.2.0"
+#define THAWECODE_VERSION "0.3.0"
 
 #define CTRL_KEY(k) ((k) & 0x1f)
 
@@ -411,6 +411,27 @@ void editorDelChar() {
 
   erow *row = &E.row[E.cy];
   if (E.cx > 0) {
+    // Soft Tab Deletion Logic
+    if (E.soft_tabs && (E.cx % E.tab_stop == 0)) {
+      // Check if there are enough characters to even be a soft tab
+      if (E.cx >= E.tab_stop) {
+        int is_soft_tab = 1;
+        // Check if the preceding characters are all spaces
+        for (int i = 1; i <= E.tab_stop; i++) {
+          if (row->chars[E.cx - i] != ' ') {
+            is_soft_tab = 0;
+            break;
+          }
+        }
+
+        if (is_soft_tab) {
+          editorRowDelChar(row, E.cx - E.tab_stop, E.tab_stop);
+          E.cx -= E.tab_stop;
+          return;
+        }
+      }
+    }
+
     editorRowDelChar(row, E.cx - 1, 1);
     E.cx--;
   } else {
@@ -942,6 +963,16 @@ void editorProcessKeypress() {
       editorInsertNewline();
       break;
 
+    case '\t':
+      if (E.soft_tabs) {
+        for (int i = 0; i < E.tab_stop; i++) {
+          editorInsertChar(' ');
+        }
+      } else {
+        editorInsertChar('\t');
+      }
+      break;
+
     case CTRL_KEY(' '): // Ctrl+Space
       if (E.selection_active) {
         E.selection_active = 0;
@@ -1063,6 +1094,7 @@ void initEditor() {
   E.clipboard = NULL;
 
   // --- SET CONFIG DEFAULTS ---
+  E.soft_tabs = 0;
   E.tab_stop = 8;
   E.quit_times = 3;
 
