@@ -942,6 +942,16 @@ void editorProcessKeypress() {
       editorInsertNewline();
       break;
 
+    case '\t':
+      if (E.soft_tabs) {
+        for (int i = 0; i < E.tab_stop; i++) {
+          editorInsertChar(' ');
+        }
+      } else {
+        editorInsertChar('\t');
+      }
+      break;
+
     case CTRL_KEY(' '): // Ctrl+Space
       if (E.selection_active) {
         E.selection_active = 0;
@@ -1063,6 +1073,7 @@ void initEditor() {
   E.clipboard = NULL;
 
   // --- SET CONFIG DEFAULTS ---
+  E.soft_tabs = 0;
   E.tab_stop = 8;
   E.quit_times = 3;
 

@@ -37,7 +37,10 @@ void parse_config_line(char *line) {
     } else if (strcmp(key, "quit-times") == 0) {
         E.quit_times = atoi(value);
         if (E.quit_times <= 0) E.quit_times = 3;
-    }
+    } else if (strcmp(key, "soft-tabs") == 0) {
+        E.soft_tabs = atoi(value);
+        if (E.soft_tabs < 0) E.soft_tabs = 0;
+  }
 }
 
 void load_config() {
