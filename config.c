@@ -46,7 +46,7 @@ void load_config() {
     if (home == NULL) return;
 
     strcpy(path, home);
-    strcat(path, "/.kilorc");
+    strcat(path, "/.ThaweCoderc");
 
     FILE *fp = fopen(path, "r");
     if (fp == NULL) return;
