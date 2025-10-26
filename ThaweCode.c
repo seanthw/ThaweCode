@@ -789,22 +789,46 @@ void editorDrawRows() {
 
 void editorDrawStatusBar() {
   attron(A_REVERSE);
+  move(E.screenrows, 0);
+  clrtoeol();
+
   char status[80], rstatus[80];
-  snprintf(status, sizeof(status), "%.20s - %d lines %s",
+  int len = snprintf(status, sizeof(status), "%.20s - %d lines %s",
                      E.filename ? E.filename : "[No name]", E.numrows,
                      E.dirty ? "(modified)" : " ");
   int rlen = snprintf(rstatus, sizeof(rstatus), " %s | %d/%d",
                       E.syntax ? E.syntax->filetype : "no ft", E.cy + 1, E.numrows);
-  mvprintw(E.screenrows, 0, "%s", status);
-  mvprintw(E.screenrows, E.screencols - rlen, "%s", rstatus);
+
+  // Create a buffer for the full line
+  char line[E.screencols + 1];
+  memset(line, ' ', E.screencols);
+  line[E.screencols] = '\0';
+
+  // Copy left status
+  if (len > E.screencols) len = E.screencols;
+  memcpy(line, status, len);
+
+  // Copy right status if there's room
+  if (E.screencols >= rlen) {
+      memcpy(line + E.screencols - rlen, rstatus, rlen);
+  }
+
+  mvprintw(E.screenrows, 0, "%s", line);
+
   attroff(A_REVERSE);
 }
 
 void editorDrawMessageBar() {
+  move(E.screenrows + 1, 0);
+  clrtoeol();
   int msglen = strlen(E.statusmsg);
   if (msglen > E.screencols) msglen = E.screencols;
-  if (msglen && time(NULL) - E.statusmsg_time < 5)
-    mvprintw(E.screenrows + 1, 0, "%s", E.statusmsg);
+  if (msglen && time(NULL) - E.statusmsg_time < 5) {
+    char msg[msglen + 1];
+    memcpy(msg, E.statusmsg, msglen);
+    msg[msglen] = '\0';
+    mvprintw(E.screenrows + 1, 0, "%s", msg);
+  }
 }
 
 void editorRefreshScreen() {
@@ -1061,7 +1085,7 @@ int main(int argc, char *argv[]) {
   }
 
   editorSetStatusMessage(
-    "HELP: Ctrl-S = save | Ctrl-Q = quit | Ctrl-F = find | Ctrl-X = cut | Ctrl-K = copy | Ctrl-V = paste");
+    "C-s:save | C-q:quit | C-f:find | C-spc:select | C-x:cut | C-k:copy | C-v:paste");
 
   while (1) {
     editorRefreshScreen();
