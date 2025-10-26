@@ -1,2 +1,2 @@
-ThaweCode: ThaweCode.c syntax.c config.c
-	$(CC) ThaweCode.c syntax.c config.c -o ThaweCode -Wall -Wextra -pedantic -std=c99 -lncurses
+thawe_code: thawe_code.c syntax.c config.c
+	$(CC) thawe_code.c syntax.c config.c -o thawe_code -Wall -Wextra -pedantic -std=c99 -lncurses

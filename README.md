@@ -13,10 +13,10 @@ make
 To open a file, provide its name as an argument:
 
 ```sh
-./ThaweCode <filename>
+./thawe_code <filename>
 ```
 
-If the file doesn't exist, it will be created. If you run `./ThaweCode` without a filename, you will start with an empty, unnamed buffer.
+If the file doesn't exist, it will be created. If you run `./thawe_code` without a filename, you will start with an empty, unnamed buffer.
 
 ### Keybindings
 
@@ -32,7 +32,7 @@ If the file doesn't exist, it will be created. If you run `./ThaweCode` without 
 *   **`Ctrl+Space`**: Toggle selection mode. Press once to set the selection mark, move the cursor to select text, and press again to cancel.
 *   **`Ctrl+X`**: Cut the selected text.
 *   **`Ctrl+K`**: Copy the selected text to the internal clipboard.
-*   **`Ctrl+P`**: Paste the text from the clipboard.
+*   **`Ctrl+V`**: Paste the text from the clipboard.
 
 #### Navigation
 
@@ -45,9 +45,9 @@ If the file doesn't exist, it will be created. If you run `./ThaweCode` without 
 
 ## Configuration
 
-You can customize the editor's behavior by creating a configuration file named `.ThaweCoderc` in your home directory.
+You can customize the editor's behavior by creating a configuration file named `.thawe_coderc` in your home directory.
 
-**Location:** The file must be placed at `~/.ThaweCoderc` (e.g., `/home/youruser/.ThaweCoderc`).
+**Location:** The file must be placed at `~/.thawe_coderc` (e.g., `/home/youruser/.thawe_coderc`).
 
 The file uses a simple `key = value` format. Lines beginning with `#` are treated as comments and are ignored.
 
@@ -58,9 +58,9 @@ The file uses a simple `key = value` format. Lines beginning with `#` are treate
 | `tab-stop`   | The number of spaces to display for a tab character.         | `8`           |
 | `quit-times` | The number of times you must press `Ctrl-Q` to quit when there are unsaved changes. | `3`           |
 
-If the `.ThaweCoderc` file is not found, or if a specific key is not present, the editor will use these default values.
+If the `.thawe_coderc` file is not found, or if a specific key is not present, the editor will use these default values.
 
-### Example `.ThaweCoderc` File
+### Example `.thawe_coderc` File
 
 ```
 # This is a comment.

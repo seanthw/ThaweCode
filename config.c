@@ -46,7 +46,7 @@ void load_config() {
     if (home == NULL) return;
 
     strcpy(path, home);
-    strcat(path, "/.ThaweCoderc");
+    strcat(path, "/.thawe_coderc");
 
     FILE *fp = fopen(path, "r");
     if (fp == NULL) return;
