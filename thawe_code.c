@@ -411,6 +411,27 @@ void editorDelChar() {
 
   erow *row = &E.row[E.cy];
   if (E.cx > 0) {
+    // Soft Tab Deletion Logic
+    if (E.soft_tabs && (E.cx % E.tab_stop == 0)) {
+      // Check if there are enough characters to even be a soft tab
+      if (E.cx >= E.tab_stop) {
+        int is_soft_tab = 1;
+        // Check if the preceding characters are all spaces
+        for (int i = 1; i <= E.tab_stop; i++) {
+          if (row->chars[E.cx - i] != ' ') {
+            is_soft_tab = 0;
+            break;
+          }
+        }
+
+        if (is_soft_tab) {
+          editorRowDelChar(row, E.cx - E.tab_stop, E.tab_stop);
+          E.cx -= E.tab_stop;
+          return;
+        }
+      }
+    }
+
     editorRowDelChar(row, E.cx - 1, 1);
     E.cx--;
   } else {
