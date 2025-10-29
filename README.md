@@ -71,3 +71,9 @@ tab-stop = 2
 # Only require pressing Ctrl-Q once to quit with unsaved changes.
 quit-times = 1
 ```
+
+---
+
+## Acknowledgements
+
+This project is an implementation of the [Kilo editor tutorial](https://viewsourcecode.org/snaptoken/kilo/index.html) by SnapToken. It served as an invaluable resource and starting point for building this text editor.
