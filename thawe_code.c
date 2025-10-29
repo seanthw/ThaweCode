@@ -287,6 +287,24 @@ int editorRowRxToCx(erow *row, int rx) {
   return cx;
 }
 
+char *editorGetIdent(erow *row) {
+  if (row == NULL) return NULL;
+
+  int ident_len = 0;
+  while (ident_len < row->size && isspace(row->chars[ident_len])) {
+    ident_len++;
+  }
+
+  if (ident_len == 0) return NULL;
+
+  char *ident = malloc(ident_len + 1);
+  if (ident == NULL) return NULL;
+
+  memcpy(ident, row->chars, ident_len);
+  ident[ident_len] = '\0';
+  return ident;
+}
+
 void editorUpdateRow(erow *row) {
   int tabs = 0;
   int j;
@@ -391,18 +409,38 @@ void editorInsertChar(int c) {
 }
 
 void editorInsertNewline() {
+  char *ident = NULL;
+  if (E.cy < E.numrows) {
+    ident = editorGetIdent(&E.row[E.cy]);
+  }
+  int ident_len = (ident) ? strlen(ident) : 0;
+  
   if (E.cx == 0) {
-    editorInsertRow(E.cy, "", 0);
+    editorInsertRow(E.cy, ident ? ident : "", ident_len);
   } else {
     erow *row = &E.row[E.cy];
-    editorInsertRow(E.cy + 1, &row->chars[E.cx], row->size - E.cx);
+    size_t len_after_cursor = row->size - E.cx;
+    char *new_content = malloc(ident_len + len_after_cursor + 1);
+    if (ident) {
+      memcpy(new_content, ident, ident_len);
+    }
+    memcpy(new_content + ident_len, &row->chars[E.cx], len_after_cursor);
+    new_content[ident_len + len_after_cursor] = '\0';
+
+    editorInsertRow(E.cy + 1, new_content, ident_len + len_after_cursor);
+    free(new_content);
+
     row = &E.row[E.cy];
     row->size = E.cx;
     row->chars[row->size] = '\0';
     editorUpdateRow(row);
   }
   E.cy++;
-  E.cx = 0;
+  E.cx = ident_len;
+
+  if (ident) {
+    free(ident);
+  }
 }
 
 void editorDelChar() {
