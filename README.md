@@ -49,7 +49,7 @@ You can customize the editor's behavior by creating a configuration file named `
 
 **Location:** The file must be placed at `~/.thawe_coderc` (e.g., `/home/youruser/.thawe_coderc`).
 
-The file uses a simple `key = value` format. Lines beginning with `#` are treated as comments and are ignored.
+The file uses a simple `key = value` format. Lines beginning with `#` are treated as comments and are ignored. You can also enable soft line wrapping, which visually wraps long lines without inserting newline characters.
 
 ### Available Options
 
@@ -58,6 +58,7 @@ The file uses a simple `key = value` format. Lines beginning with `#` are treate
 | `tab-stop`   | The number of spaces to display for a tab character.         | `8`           |
 | `quit-times` | The number of times you must press `Ctrl-Q` to quit when there are unsaved changes. | `3`           |
 | `soft-tabs`  | Use spaces instead of tabs. Set to `1` to enable.            | `0`           |
+| `soft-wrap`  | Enable or disable soft line wrapping. Set to `1` to enable. | `0`           |
 
 If the `.thawe_coderc` file is not found, or if a specific key is not present, the editor will use these default values.
 

@@ -42,6 +42,7 @@ struct editorConfig {
   int tab_stop;
   int quit_times;
   int soft_tabs;
+  int soft_wrap;
   int mark_cx, mark_cy;       // Position of the selcetion mark
   int selection_active;       // Is selection active?
   char *clipboard;            // Stores copied text
