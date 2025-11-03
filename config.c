@@ -43,6 +43,9 @@ void parse_config_line(char *line) {
     } else if (strcmp(key, "soft-wrap") == 0) {
         E.soft_wrap = atoi(value);
         if (E.soft_wrap < 0) E.soft_wrap = 0;
+    } else if (strcmp(key, "hard-wrap") == 0) {
+        E.hard_wrap = atoi(value);
+        if (E.hard_wrap < 0) E.hard_wrap = 0;
   }
 }
 

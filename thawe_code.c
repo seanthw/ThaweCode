@@ -20,7 +20,7 @@
 
 /*** defines ***/
 
-#define THAWECODE_VERSION "0.4.0"
+#define THAWECODE_VERSION "0.5.0"
 
 #define CTRL_KEY(k) ((k) & 0x1f)
 
@@ -49,6 +49,7 @@ void editorRefreshScreen();
 char *editorPrompt(char *prompt, void (*callback) (char *, int));
 void initColors();
 int getWindowSize(int *rows, int *cols);
+void editorApplyHardWrap();
 
 /*** terminal ***/
 
@@ -406,6 +407,7 @@ void editorInsertChar(int c) {
   }
   editorRowInsertChar(&E.row[E.cy], E.cx, c);
   E.cx++;
+  editorApplyHardWrap();
 }
 
 void editorInsertNewline() {
@@ -440,6 +442,50 @@ void editorInsertNewline() {
 
   if (ident) {
     free(ident);
+  }
+}
+
+void editorApplyHardWrap() {
+  if (!E.hard_wrap) return;
+
+  erow *row = &E.row[E.cy];
+  int wrap_width = E.screencols - 5;
+
+  if (row->rsize <= wrap_width) return;
+
+  int wrap_char_idx = editorRowRxToCx(row, wrap_width);
+
+  int break_char_idx = -1;
+  for (int i = wrap_char_idx; i >= 0; i--) {
+    if (row->chars[i] == ' ') {
+      break_char_idx = i;
+      break;
+    }
+  }
+
+  if (break_char_idx == -1) return;
+
+  int content_start_idx = break_char_idx;
+  while (content_start_idx < row->size && isspace(row->chars[content_start_idx])) {
+    content_start_idx++;
+  }
+
+  if (content_start_idx >= row->size) return;
+
+  char *content_to_move = &row->chars[content_start_idx];
+  int len_to_move = row->size - content_start_idx;
+
+  editorInsertRow(E.cy + 1, content_to_move, len_to_move);
+
+  row = &E.row[E.cy]; // Re-fetch the pointer after realloc
+
+  row->size = break_char_idx;
+  row->chars[row->size] = '\0';
+  editorUpdateRow(row);
+
+  if (E.cx > break_char_idx) {
+    E.cy++;
+    E.cx = E.cx - content_start_idx;
   }
 }
 
@@ -1219,6 +1265,7 @@ void initEditor() {
   E.soft_tabs = 0;
   E.tab_stop = 8;
   E.soft_wrap = 0;
+  E.hard_wrap = 0;
   E.quit_times = 3;
 
   if (getWindowSize(&E.screenrows, &E.screencols) == -1) die("getWindowSize");
