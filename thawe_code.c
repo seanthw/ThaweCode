@@ -1256,6 +1256,14 @@ void editorProcessKeypress() {
       editorCut();
       break;
 
+    case CTRL_KEY('u'):
+      editorUndo();
+      break;
+
+    case CTRL_KEY('r'):
+      editorRedo();
+      break;
+
     case CTRL_KEY('q'):
       if (E.dirty && quit_times > 0) {
         editorSetStatusMessage("WARNING!!! File has unsaved changes. "
