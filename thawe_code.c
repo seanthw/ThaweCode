@@ -756,19 +756,37 @@ void editorScroll() {
   if (E.cy < E.numrows) {
     E.rx = editorRowCxToRx(&E.row[E.cy], E.cx);
   }
-  if (E.cy < E.rowoff) {
-    E.rowoff = E.cy;
+  if (E.soft_wrap) {
+    E.coloff = 0; // No horizontal scrolling with soft warp
+    int display_y = 0;
+    // Calculate the total number of display lines up to the cursor's line
+    for (int i = 0; i < E.cy; i++) {
+      display_y += (E.row[i].rsize / (E.screencols - 5)) + 1;
+    }
+    // Add the display lines within the cursor's line
+    display_y += E.rx / (E.screencols - 5);
+
+    if(display_y < E.rowoff) {
+      E.rowoff = display_y;
+    }
+    if (display_y >= E.rowoff + E.screenrows) {
+      E.rowoff = display_y - E.screenrows + 1;
+    }
+  } else {
+    if (E.cy < E.rowoff) {
+      E.rowoff = E.cy;
+    }
+    if (E.cy >= E.rowoff + E.screenrows) {
+      E.rowoff = E.cy - E.screenrows + 1;
+    }
+    if (E.rx < E.coloff) {
+      E.coloff = E.rx;
+    }
+    if (E.rx >= E.coloff + E.screencols - 5) {
+      E.coloff = E.rx - (E.screencols - 5) + 1;
+    }
   }
-  if (E.cy >= E.rowoff + E.screenrows) {
-    E.rowoff = E.cy - E.screenrows + 1;
-  }
-  if (E.rx < E.coloff) {
-    E.coloff = E.rx;
-  }
-  if (E.rx >= E.coloff + E.screencols - 5) {
-    E.coloff = E.rx - (E.screencols - 5) + 1;
-  }
-}
+ }
 
 int is_char_in_selection(int filerow, int char_idx) {
   if (!E.selection_active) return 0;
@@ -805,42 +823,96 @@ int is_char_in_selection(int filerow, int char_idx) {
 void editorDrawRows() {
   int y;
   for (y = 0; y < E.screenrows; y++) {
-    int filerow = y + E.rowoff;
-    if (filerow >= E.numrows) {
-      if (E.numrows == 0 && y == E.screenrows / 3) {
-        char welcome[80];
-        int welcomelen = snprintf(welcome, sizeof(welcome),
-                                  "ThaweCode editor -- version %s", THAWECODE_VERSION);
-        if (welcomelen > E.screencols) welcomelen = E.screencols;
-        int padding = (E.screencols - welcomelen) / 2;
-        if (padding) {
+    if (E.soft_wrap) {
+      int target_display_line = E.rowoff + y;
+
+      int filerow_idx = -1;
+      int line_offset_in_row = 0;
+
+      // Find which file row and which wrapped line within it corresponds to the target_display_line
+      int display_line_counter = 0;
+      for (int i = 0; i < E.numrows; i++) {
+        int lines_for_this_row = (E.row[i].rsize / (E.screencols - 5)) + 1;
+        if (display_line_counter + lines_for_this_row > target_display_line) {
+          filerow_idx = i;
+          line_offset_in_row = target_display_line - display_line_counter;
+          break;
+        }
+        display_line_counter += lines_for_this_row;
+      }
+
+      if (filerow_idx != -1) {
+        erow *row = &E.row[filerow_idx];
+        int start_char_offset = line_offset_in_row * (E.screencols - 5);
+        
+        if (start_char_offset >= row->rsize) {
+            mvprintw(y, 0, "~");
+            continue;
+        }
+
+        int len = row->rsize - start_char_offset;
+        if (len > (E.screencols - 5)) len = (E.screencols - 5);
+
+        char *c = &row->render[start_char_offset];
+        unsigned char *hl = &row->hl[start_char_offset];
+
+        // Gutter: only for the first line of a wrapped row
+        if (line_offset_in_row == 0) {
+          attron(A_DIM | COLOR_PAIR(editorSyntaxToColor(HL_GUTTER)));
+          mvprintw(y, 0, "%4d ", filerow_idx + 1);
+          attroff(A_DIM | COLOR_PAIR(editorSyntaxToColor(HL_GUTTER)));
+        } else {
+          attron(A_DIM | COLOR_PAIR(editorSyntaxToColor(HL_GUTTER)));
+          mvprintw(y, 0, "   . "); // Indicate continuation
+          attroff(A_DIM | COLOR_PAIR(editorSyntaxToColor(HL_GUTTER)));
+        }
+
+        for (int j = 0; j < len; j++) {
+          attron(COLOR_PAIR(editorSyntaxToColor(hl[j])));
+          mvprintw(y, j + 5, "%c", c[j]);
+          attroff(COLOR_PAIR(editorSyntaxToColor(hl[j])));
+        }
+      } else {
+         mvprintw(y, 0, "~");
+      }
+    } else { // Original non-wrapped drawing logic
+      int filerow = y + E.rowoff;
+      if (filerow >= E.numrows) {
+        if (E.numrows == 0 && y == E.screenrows / 3) {
+          char welcome[80];
+          int welcomelen = snprintf(welcome, sizeof(welcome),
+                                    "ThaweCode editor -- version %s", THAWECODE_VERSION);
+          if (welcomelen > E.screencols) welcomelen = E.screencols;
+          int padding = (E.screencols - welcomelen) / 2;
+          if (padding) {
+            mvprintw(y, 0, "~");
+          }
+          mvprintw(y, padding, "%s", welcome);
+        } else {
           mvprintw(y, 0, "~");
         }
-        mvprintw(y, padding, "%s", welcome);
       } else {
-        mvprintw(y, 0, "~");
-      }
-    } else {
-      int len = E.row[filerow].rsize - E.coloff;
-      if (len < 0) len = 0;
-      if (len > E.screencols) len = E.screencols;
-      char *c = &E.row[filerow].render[E.coloff];
-      unsigned char *hl = &E.row[filerow].hl[E.coloff];
+        int len = E.row[filerow].rsize - E.coloff;
+        if (len < 0) len = 0;
+        if (len > E.screencols) len = E.screencols;
+        char *c = &E.row[filerow].render[E.coloff];
+        unsigned char *hl = &E.row[filerow].hl[E.coloff];
 
-      attron(A_DIM | COLOR_PAIR(editorSyntaxToColor(HL_GUTTER)));
-      mvprintw(y, 0, "%4d ", filerow + 1);
-      attroff(A_DIM | COLOR_PAIR(editorSyntaxToColor(HL_GUTTER)));
+        attron(A_DIM | COLOR_PAIR(editorSyntaxToColor(HL_GUTTER)));
+        mvprintw(y, 0, "%4d ", filerow + 1);
+        attroff(A_DIM | COLOR_PAIR(editorSyntaxToColor(HL_GUTTER)));
 
-      for (int j = 0; j < len; j++) {
-        if (is_char_in_selection(filerow, E.coloff + j)) {
-          attron(A_REVERSE);
+        for (int j = 0; j < len; j++) {
+          if (is_char_in_selection(filerow, E.coloff + j)) {
+            attron(A_REVERSE);
+          }
+
+          attron(COLOR_PAIR(editorSyntaxToColor(hl[j])));
+          mvprintw(y, j + 5, "%c", c[j]);
+          attroff(COLOR_PAIR(editorSyntaxToColor(hl[j])));
+
+          attroff(A_REVERSE);
         }
-
-        attron(COLOR_PAIR(editorSyntaxToColor(hl[j])));
-        mvprintw(y, j + 5, "%c", c[j]);
-        attroff(COLOR_PAIR(editorSyntaxToColor(hl[j])));
-
-        attroff(A_REVERSE);
       }
     }
   }
@@ -899,8 +971,20 @@ void editorRefreshScreen() {
   editorDrawStatusBar();
   editorDrawMessageBar();
 
-  // Move cursor to its final position
-  move(E.cy - E.rowoff, E.rx - E.coloff + 5);
+  int final_cy, final_cx;
+  if (E.soft_wrap) {
+    int display_y = 0;
+    for (int i = 0; i < E.cy; i++) {
+      display_y += (E.row[i].rsize / (E.screencols - 5)) + 1;
+    }
+    display_y += E.rx / (E.screencols - 5);
+    final_cy = display_y - E.rowoff;
+    final_cx = (E.rx % (E.screencols - 5)) + 5;
+  } else {
+    final_cy = E.cy - E.rowoff;
+    final_cx = E.rx - E.coloff + 5;
+  }
+  move(final_cy, final_cx);
 
   refresh(); // Refresh the screen (ncurses equivalent of write())
 }
@@ -1134,6 +1218,7 @@ void initEditor() {
   // --- SET CONFIG DEFAULTS ---
   E.soft_tabs = 0;
   E.tab_stop = 8;
+  E.soft_wrap = 0;
   E.quit_times = 3;
 
   if (getWindowSize(&E.screenrows, &E.screencols) == -1) die("getWindowSize");
