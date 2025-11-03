@@ -47,7 +47,27 @@ struct editorConfig {
   int mark_cx, mark_cy;       // Position of the selcetion mark
   int selection_active;       // Is selection active?
   char *clipboard;            // Stores copied text
+  
+  // Undo/Redo stacks
+  struct editorAction *undo_stack;
+  int undo_pos;
+  int undo_len;
+  struct editorAction *redo_stack;
+  int redo_pos;
+  int redo_len;
 };
+
+enum editorActionType {
+  ACTION_INSERT,
+  ACTION_DELETE
+};
+
+typedef struct editorAction {
+  enum editorActionType type;
+  int cx, cy;
+  char *data;
+  size_t len;
+} editorAction;
 
 extern struct editorConfig E;
 

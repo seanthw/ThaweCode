@@ -33,6 +33,8 @@ If the file doesn't exist, it will be created. If you run `./thawe_code` without
 *   **`Ctrl+X`**: Cut the selected text.
 *   **`Ctrl+K`**: Copy the selected text to the internal clipboard.
 *   **`Ctrl+V`**: Paste the text from the clipboard.
+*   **`Ctrl+U`**: Undo the last action.
+*   **`Ctrl+R`**: Redo the last undone action.
 
 #### Navigation
 
@@ -59,6 +61,7 @@ The file uses a simple `key = value` format. Lines beginning with `#` are treate
 | `quit-times` | The number of times you must press `Ctrl-Q` to quit when there are unsaved changes. | `3`           |
 | `soft-tabs`  | Use spaces instead of tabs. Set to `1` to enable.            | `0`           |
 | `soft-wrap`  | Enable or disable soft line wrapping. Set to `1` to enable. | `0`           |
+| `hard-wrap`  | Enable or disable hard line wrapping. Set to `1` to enable. | `0`           |
 
 If the `.thawe_coderc` file is not found, or if a specific key is not present, the editor will use these default values.
 

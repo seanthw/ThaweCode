@@ -20,7 +20,7 @@
 
 /*** defines ***/
 
-#define THAWECODE_VERSION "0.5.0"
+#define THAWECODE_VERSION "0.6.0"
 
 #define CTRL_KEY(k) ((k) & 0x1f)
 
@@ -50,6 +50,9 @@ char *editorPrompt(char *prompt, void (*callback) (char *, int));
 void initColors();
 int getWindowSize(int *rows, int *cols);
 void editorApplyHardWrap();
+void editorUndo();
+void editorRedo();
+void editorAddUndoAction(enum editorActionType type, char *data, size_t len);
 
 /*** terminal ***/
 
@@ -406,6 +409,7 @@ void editorInsertChar(int c) {
     editorInsertRow(E.numrows, "", 0);
   }
   editorRowInsertChar(&E.row[E.cy], E.cx, c);
+  editorAddUndoAction(ACTION_INSERT, (char *)&c, 1);
   E.cx++;
   editorApplyHardWrap();
 }
@@ -495,12 +499,9 @@ void editorDelChar() {
 
   erow *row = &E.row[E.cy];
   if (E.cx > 0) {
-    // Soft Tab Deletion Logic
     if (E.soft_tabs && (E.cx % E.tab_stop == 0)) {
-      // Check if there are enough characters to even be a soft tab
       if (E.cx >= E.tab_stop) {
         int is_soft_tab = 1;
-        // Check if the preceding characters are all spaces
         for (int i = 1; i <= E.tab_stop; i++) {
           if (row->chars[E.cx - i] != ' ') {
             is_soft_tab = 0;
@@ -509,16 +510,27 @@ void editorDelChar() {
         }
 
         if (is_soft_tab) {
+          char *delete_spaces = malloc(E.tab_stop);
+          memcpy(delete_spaces, &row->chars[E.cx - E.tab_stop], E.tab_stop);
+          editorAddUndoAction(ACTION_DELETE, delete_spaces, E.tab_stop);
+          free(delete_spaces);
+
           editorRowDelChar(row, E.cx - E.tab_stop, E.tab_stop);
           E.cx -= E.tab_stop;
           return;
         }
       }
     }
+    
+    char delete_char = row->chars[E.cx - 1];
+    editorAddUndoAction(ACTION_DELETE, &delete_char, 1);
 
     editorRowDelChar(row, E.cx - 1, 1);
     E.cx--;
   } else {
+    char newline_char = '\n';
+    editorAddUndoAction(ACTION_DELETE, &newline_char, 1);
+
     E.cx = E.row[E.cy - 1].size;
     editorRowAppendString(&E.row[E.cy - 1], row->chars, row->size);
     editorDelRow(E.cy);
@@ -638,6 +650,84 @@ void editorCut() {
   editorDeleteSelection();
 }
 
+void editorAddUndoAction(enum editorActionType type, char *data, size_t len) {
+  for (int i = 0; i < E.redo_pos; i++) {
+    free(E.redo_stack[i].data);
+  }
+  E.redo_pos = 0;
+
+  if (E.undo_pos >= E.undo_len) {
+    E.undo_len = (E.undo_len == 0) ? 8 : E.undo_len * 2;
+    E.undo_stack = realloc(E.undo_stack, sizeof(editorAction) * E.undo_len);
+  }
+
+  editorAction *action = &E.undo_stack[E.undo_pos++];
+  action->type = type;
+  action->cx = E.cx;
+  action->cy = E.cy;
+  action->len = len;
+  action->data = malloc(len);
+  memcpy(action->data, data, len);
+}
+
+void editorUndo() {
+  if (E.undo_pos == 0) return;
+
+  E.undo_pos--;
+  editorAction *action = &E.undo_stack[E.undo_pos];
+
+  if (E.redo_pos >= E.redo_len) {
+    E.redo_len = (E.redo_len == 0) ? 8 : E.redo_len * 2;
+    E.redo_stack = realloc(E.redo_stack, sizeof(editorAction) * E.redo_len);
+  }
+  memcpy(&E.redo_stack[E.redo_pos++], action, sizeof(editorAction));
+
+  E.cx = action->cx;
+  E.cy = action->cy;
+
+  if (action->type ==ACTION_INSERT) {
+    if (action->data[0] == '\n') {
+      editorDelRow(E.cy);
+    } else {
+      editorRowDelChar(&E.row[E.cy], E.cx - action->len, action->len);
+    }
+  } else {
+    if (action->data[0] == '\n') {
+      editorInsertNewline();
+    } else {
+      for (size_t i = 0; i < action->len; i++) {
+        editorRowInsertChar(&E.row[E.cy], E.cx + i, action->data[i]);
+      }
+    }
+  }
+}
+
+void editorRedo() {
+  if (E.redo_pos == 0) return;
+
+  E.redo_pos--;
+  editorAction *action = &E.redo_stack[E.redo_pos];
+  memcpy(&E.undo_stack[E.undo_pos++], action, sizeof(editorAction));
+
+  E.cx = action->cx;
+  E.cy = action->cy;
+
+  if (action->type == ACTION_INSERT) {
+    if (action->data[0] == '\n') {
+      editorInsertNewline();
+    } else {
+      for (size_t i = 0; i < action->len; i++) {
+        editorRowInsertChar(&E.row[E.cy], E.cx + i, action->data[i]);
+      }
+    }
+  } else {
+    if (action->data[0] == '\n') {
+      editorDelRow(E.cy);
+    } else {
+      editorRowDelChar(&E.row[E.cy], E.cx - action->len, action->len);
+    }
+  }
+}
 /*** file i/o ***/
 
 char *editorRowsToString(int *buflen) {
@@ -1166,6 +1256,14 @@ void editorProcessKeypress() {
       editorCut();
       break;
 
+    case CTRL_KEY('u'):
+      editorUndo();
+      break;
+
+    case CTRL_KEY('r'):
+      editorRedo();
+      break;
+
     case CTRL_KEY('q'):
       if (E.dirty && quit_times > 0) {
         editorSetStatusMessage("WARNING!!! File has unsaved changes. "
@@ -1260,6 +1358,12 @@ void initEditor() {
   E.mark_cy = 0;
   E.selection_active = 0;
   E.clipboard = NULL;
+  E.undo_stack = NULL;
+  E.undo_pos = 0;
+  E.undo_len = 0;
+  E.redo_stack = NULL;
+  E.redo_pos = 0;
+  E.redo_len = 0;
 
   // --- SET CONFIG DEFAULTS ---
   E.soft_tabs = 0;
