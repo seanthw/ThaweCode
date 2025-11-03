@@ -20,7 +20,7 @@
 
 /*** defines ***/
 
-#define THAWECODE_VERSION "0.3.0"
+#define THAWECODE_VERSION "0.4.0"
 
 #define CTRL_KEY(k) ((k) & 0x1f)
 
