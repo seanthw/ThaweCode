@@ -27,6 +27,7 @@ If the file doesn't exist, it will be created. If you run `./thawe_code` without
 *   **`Ctrl-F`**: Search for text within the file.
     *   Use `Enter` or arrow keys to navigate between matches.
     *   Press `Esc` to cancel the search.
+*   **`Ctrl-G`**: Display a help screen with all keybindings.
 
 #### Multi-Buffer Management
 
