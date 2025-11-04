@@ -60,6 +60,7 @@ void editorNewBuffer();
 void initBuffer(struct Buffer *b);
 void editorSwitchBuffer();
 void editorShowBufferList();
+void editorCloseBuffer();
 
 /*** terminal ***/
 
@@ -878,6 +879,50 @@ end_loop:
   return;
 }
 
+void editorCloseBuffer() {
+  static int quit_times = 3;
+  struct Buffer *b = CURRENT_BUFFER;
+
+  if (b->dirty && quit_times > 0) {
+    editorSetStatusMessage("WARNING!!! File has unsaved changes. "
+                           "Press Ctrl-Q %d more times to quit.", quit_times);
+    quit_times--;
+    return;
+  }
+
+  if (E.num_buffers <= 1) {
+    endwin();
+    exit(0);
+  }
+
+  quit_times = E.quit_times; // Reset on successful close
+
+  // --- Free all memory associated with the buffer ---
+  for (int i = 0; i < b->numrows; i++) {
+    editorFreeRow(&b->row[i]);
+  }
+  free(b->row);
+  free(b->filename);
+  free(b->clipboard);
+  for (int i = 0; i < b->undo_pos; i++) free(b->undo_stack[i].data);
+  for (int i = 0; i < b->redo_pos; i++) free(b->redo_stack[i].data);
+  free(b->undo_stack);
+  free(b->redo_stack);
+  free(b);
+
+  // --- Remove the buffer pointer from the array ---
+  int closing_idx = E.current_buffer;
+  memmove(&E.buffers[closing_idx], &E.buffers[closing_idx + 1], sizeof(struct Buffer *) * (E.num_buffers - closing_idx - 1));
+  E.num_buffers--;
+
+  // --- Adjust the current buffer index ---
+  if (E.current_buffer >= E.num_buffers) {
+    E.current_buffer = E.num_buffers - 1;
+  }
+
+  editorSetStatusMessage("Buffer closed.");
+}
+
 void editorSave() {
   if (CURRENT_BUFFER->filename == NULL) {
     CURRENT_BUFFER->filename = editorPrompt("Save as: %s (ESC to cancel)", NULL);
@@ -1318,8 +1363,6 @@ void editorMoveCursor(int key) {
 }
 
 void editorProcessKeypress() {
-  static int quit_times = 3; // This will be updated by the first non-quit keypress
-
   int c = editorReadKey();
 
   switch (c) {
@@ -1372,15 +1415,7 @@ void editorProcessKeypress() {
       break;
 
     case CTRL_KEY('q'):
-      if (CURRENT_BUFFER->dirty && quit_times > 0) {
-        editorSetStatusMessage("WARNING!!! File has unsaved changes. "
-                               "Press Ctrl-Q %d more times to quit.", quit_times);
-        quit_times--;
-        return;
-      }
-
-      endwin();
-      exit(0);
+      editorCloseBuffer();
       break;
 
     case CTRL_KEY('s'):
@@ -1448,11 +1483,6 @@ void editorProcessKeypress() {
     default:
       editorInsertChar(c);
       break;
-  }
-
-  // Reset quit_times on any keypress that isn't the quit key
-  if (c != CTRL_KEY('q')) {
-    quit_times = E.quit_times;
   }
 }
 
