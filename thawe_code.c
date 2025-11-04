@@ -58,6 +58,7 @@ void editorAddUndoAction(enum editorActionType type, char *data, size_t len);
 void editorSave();
 void editorNewBuffer();
 void initBuffer(struct Buffer *b);
+void editorSwitchBuffer();
 
 /*** terminal ***/
 
@@ -805,6 +806,17 @@ void editorNewBuffer() {
   editorSelectSyntaxHighlight(); // Apply syntax highlighting for the new (empty) buffer
 }
 
+void editorSwitchBuffer() {
+  if (E.num_buffers <= 1) {
+    editorSetStatusMessage("Only one buffer open.");
+    return;
+  }
+
+  E.current_buffer = (E.current_buffer + 1) % E.num_buffers;
+  editorSetStatusMessage("switch to buffer %d: %s", E.current_buffer + 1,
+                         CURRENT_BUFFER->filename ? CURRENT_BUFFER->filename : "[No name]");
+}
+
 void editorSave() {
   if (CURRENT_BUFFER->filename == NULL) {
     CURRENT_BUFFER->filename = editorPrompt("Save as: %s (ESC to cancel)", NULL);
@@ -1315,6 +1327,10 @@ void editorProcessKeypress() {
 
     case CTRL_KEY('n'):
       editorNewBuffer();
+      break;
+
+    case CTRL_KEY('b'):
+      editorSwitchBuffer();
       break;
 
     case HOME_KEY:
