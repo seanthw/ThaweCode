@@ -1,36 +1,13 @@
-# Dependencies
-*.d
+# Ignore compiled executable
+thawe_code
 
-# Compiled object files
+# Ignore object files
 *.o
-*.ko
-*.obj
-*.elf
 
-# Precompiled Headers
-*.gch
-
-# Libraries
-*.lib
-*.a
-*.la
-*.lo
-
-# Shared objects (libraries)
-*.so
-*.so.*
-*.dll
-
-# Executables
-*.exe
-*.out
-*.app
-ThaweCode
-
-# Debug files
-*.dSYM/
-
-# Editor backup files
+# Ignore editor backup files
 *~
 *.swp
-thawe_code
+*.swo
+
+# Ignore asciinema recordings
+*.cast
