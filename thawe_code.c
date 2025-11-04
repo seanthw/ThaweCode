@@ -59,6 +59,7 @@ void editorSave();
 void editorNewBuffer();
 void initBuffer(struct Buffer *b);
 void editorSwitchBuffer();
+void editorShowBufferList();
 
 /*** terminal ***/
 
@@ -817,6 +818,66 @@ void editorSwitchBuffer() {
                          CURRENT_BUFFER->filename ? CURRENT_BUFFER->filename : "[No name]");
 }
 
+void editorShowBufferList() {
+  if (E.num_buffers <= 1) {
+    editorSetStatusMessage("Only one buffer open.");
+    return;
+  }
+
+  int height = E.num_buffers + 2;
+  if (height > E.screenrows - 4) height = E.screenrows - 4;
+  int width = E.screencols / 2;
+  int start_y = (E.screenrows - height) / 2;
+  int start_x = (E.screencols - width) / 2;
+  int selected_buffer = E.current_buffer;
+
+  while (1) {
+    attron(A_REVERSE);
+    for (int i = 0; i < height; i++) {
+      mvprintw(start_y + i, start_x, "%*s", width, " ");
+    }
+    mvprintw(start_y, start_x + 1, " Open Buffers ");
+
+    for (int i = 0; i < E.num_buffers; i++) {
+      if (i >= height - 2) break;
+
+      char *filename = E.buffers[i]->filename ? E.buffers[i]->filename : "[No name]";
+      char buffer_entry[width - 2];
+      snprintf(buffer_entry, sizeof(buffer_entry), "%d: %s", i + 1, filename);
+
+      if (i == selected_buffer) {
+        mvprintw(start_y + 1 + i, start_x + 1, "%s", buffer_entry);
+      } else {
+        attroff(A_REVERSE);
+        mvprintw(start_y + 1 + i, start_x + 1, "%s", buffer_entry);
+        attron(A_REVERSE);
+      }
+    }
+    attroff(A_REVERSE);
+    refresh();
+
+    int c = editorReadKey();
+    switch (c) {
+      case ARROW_UP:
+        selected_buffer--;
+        if (selected_buffer < 0) selected_buffer = E.num_buffers - 1;
+        break;
+      case ARROW_DOWN:
+        selected_buffer++;
+        if (selected_buffer >= E.num_buffers) selected_buffer = 0;
+        break;
+      case '\n':
+      case KEY_ENTER:
+        E.current_buffer = selected_buffer;
+        goto end_loop;
+      case '\x1b':
+        goto end_loop;
+    }
+  }
+end_loop:
+  return;
+}
+
 void editorSave() {
   if (CURRENT_BUFFER->filename == NULL) {
     CURRENT_BUFFER->filename = editorPrompt("Save as: %s (ESC to cancel)", NULL);
@@ -1333,6 +1394,10 @@ void editorProcessKeypress() {
       editorSwitchBuffer();
       break;
 
+    case CTRL_KEY('l'):
+      editorShowBufferList();
+      break;
+
     case HOME_KEY:
       CURRENT_BUFFER->cx = 0;
       break;
@@ -1376,7 +1441,6 @@ void editorProcessKeypress() {
       editorMoveCursor(c);
       break;
 
-    case CTRL_KEY('l'):
     case '\x1b':
       break;
 
