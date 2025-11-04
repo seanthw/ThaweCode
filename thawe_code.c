@@ -933,6 +933,22 @@ void editorSave() {
     editorSelectSyntaxHighlight();
   }
 
+  // Check if file exists
+  if (access(CURRENT_BUFFER->filename, F_OK) != -1) {
+    char *prompt = "File exists, overwrite? (y/n): %s";
+    char *response = editorPrompt(prompt, NULL);
+    if (response == NULL || (strcmp(response, "y") != 0 && strcmp(response, "Y") != 0)) {
+      editorSetStatusMessage("Save aborted");
+      free(response);
+      if (CURRENT_BUFFER->filename != NULL) {
+          free(CURRENT_BUFFER->filename);
+          CURRENT_BUFFER->filename = NULL;
+      }
+      return;
+    }
+    free(response);
+  }
+
   int len;
   char *buf = editorRowsToString(&len);
 
