@@ -1169,8 +1169,9 @@ void editorDrawStatusBar() {
   int len = snprintf(status, sizeof(status), "%.20s - %d lines %s",
                      CURRENT_BUFFER->filename ? CURRENT_BUFFER->filename : "[No name]", CURRENT_BUFFER->numrows,
                      CURRENT_BUFFER->dirty ? "(modified)" : " ");
-  int rlen = snprintf(rstatus, sizeof(rstatus), " %s | %d/%d",
-                      CURRENT_BUFFER->syntax ? CURRENT_BUFFER->syntax->filetype : "no ft", CURRENT_BUFFER->cy + 1, CURRENT_BUFFER->numrows);
+  int rlen = snprintf(rstatus, sizeof(rstatus), " %s | %d/%d | [%d/%d]",
+                      CURRENT_BUFFER->syntax ? CURRENT_BUFFER->syntax->filetype : "no ft", CURRENT_BUFFER->cy + 1, CURRENT_BUFFER->numrows,
+                      E.current_buffer + 1, E.num_buffers);
 
   // Create a buffer for the full line
   char line[E.screencols + 1];
