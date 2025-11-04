@@ -55,6 +55,9 @@ void editorApplyHardWrap();
 void editorUndo();
 void editorRedo();
 void editorAddUndoAction(enum editorActionType type, char *data, size_t len);
+void editorSave();
+void editorNewBuffer();
+void initBuffer(struct Buffer *b);
 
 /*** terminal ***/
 
@@ -774,6 +777,34 @@ void editorOpen(char *filename) {
   CURRENT_BUFFER->dirty = 0;
 }
 
+void editorNewBuffer() {
+  // Check if the current buffer is dirty before switching
+  if (CURRENT_BUFFER->dirty) {
+    editorSetStatusMessage("Current buffer has unsaved changes. Save? (y/n/ESC)");
+    editorRefreshScreen();
+    int c = editorReadKey();
+    if (c == 'y' || c == 'Y') {
+      editorSave();
+      if (CURRENT_BUFFER->dirty) { // If save failed, don't create new buffer
+        editorSetStatusMessage("Save failed. New buffer aborted.");
+        return;
+      }
+    } else if (c == '\x1b') { // User cancelled
+      editorSetStatusMessage("New buffer aborted.");
+      return;
+    }
+    // If 'n' or any other key, proceed without saving (discard changes)
+  }
+
+  E.num_buffers++;
+  E.buffers = realloc(E.buffers, sizeof(struct Buffer *) * E.num_buffers);
+  E.buffers[E.num_buffers - 1] = malloc(sizeof(struct Buffer));
+  initBuffer(E.buffers[E.num_buffers - 1]);
+  E.current_buffer = E.num_buffers - 1;
+  editorSetStatusMessage("New buffer created.");
+  editorSelectSyntaxHighlight(); // Apply syntax highlighting for the new (empty) buffer
+}
+
 void editorSave() {
   if (CURRENT_BUFFER->filename == NULL) {
     CURRENT_BUFFER->filename = editorPrompt("Save as: %s (ESC to cancel)", NULL);
@@ -1280,6 +1311,10 @@ void editorProcessKeypress() {
 
     case CTRL_KEY('s'):
       editorSave();
+      break;
+
+    case CTRL_KEY('n'):
+      editorNewBuffer();
       break;
 
     case HOME_KEY:
