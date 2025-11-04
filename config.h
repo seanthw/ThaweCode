@@ -25,36 +25,41 @@ enum {
   COLOR_PAIR_GUTTER
 };
 
-struct editorConfig {
+struct Buffer {
   int cx, cy;
   int rx;
   int rowoff;
   int coloff;
-  int screenrows;
-  int screencols;
   int numrows;
   erow *row;
   int dirty;
   char *filename;
-  char statusmsg[80];
-  time_t statusmsg_time;
   struct editorSyntax *syntax;
   int tab_stop;
-  int quit_times;
   int soft_tabs;
-  int soft_wrap;
-  int hard_wrap;
-  int mark_cx, mark_cy;       // Position of the selcetion mark
-  int selection_active;       // Is selection active?
-  char *clipboard;            // Stores copied text
-  
-  // Undo/Redo stacks
+  int mark_cx, mark_cy;
+  int selection_active;
+  char *clipboard;
   struct editorAction *undo_stack;
   int undo_pos;
   int undo_len;
   struct editorAction *redo_stack;
   int redo_pos;
   int redo_len;
+};
+
+struct editorConfig {
+  int screenrows;
+  int screencols;
+  char statusmsg[80];
+  time_t statusmsg_time;
+  int quit_times;
+  int soft_wrap;
+  int hard_wrap;
+
+  struct Buffer **buffers;
+  int num_buffers;
+  int current_buffer;
 };
 
 enum editorActionType {
