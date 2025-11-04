@@ -21,11 +21,22 @@ If the file doesn't exist, it will be created. If you run `./thawe_code` without
 ### Keybindings
 
 *   **`Ctrl-S`**: Save the current file.
-*   **`Ctrl-Q`**: Quit the editor.
-    *   If the file has unsaved changes, you will be warned and must press `Ctrl-Q` a configurable number of times to quit (default is 3).
+    *   If the file already exists, you will be prompted to confirm before it is overwritten.
+*   **`Ctrl-Q`**: Close the current buffer. If it's the last buffer, quit the editor.
+    *   If the buffer has unsaved changes, you will be warned and must press `Ctrl-Q` a configurable number of times (default is 3).
 *   **`Ctrl-F`**: Search for text within the file.
     *   Use `Enter` or arrow keys to navigate between matches.
     *   Press `Esc` to cancel the search.
+*   **`Ctrl-G`**: Display a help screen with all keybindings.
+
+#### Multi-Buffer Management
+
+The editor now fully supports multiple buffers. The status bar will display the current buffer index and total count (e.g., `[1/3]`).
+
+*   **`Ctrl+N`**: Create a new, empty buffer.
+*   **`Ctrl+B`**: Switch to the next buffer in the list.
+*   **`Ctrl+L`**: Display a list of all open buffers. Use the arrow keys to navigate and `Enter` to select a buffer.
+*   **`Ctrl+Q`**: Close the current buffer.
 
 #### Text Editing
 
