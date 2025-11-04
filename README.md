@@ -21,6 +21,7 @@ If the file doesn't exist, it will be created. If you run `./thawe_code` without
 ### Keybindings
 
 *   **`Ctrl-S`**: Save the current file.
+    *   If the file already exists, you will be prompted to confirm before it is overwritten.
 *   **`Ctrl-Q`**: Close the current buffer. If it's the last buffer, quit the editor.
     *   If the buffer has unsaved changes, you will be warned and must press `Ctrl-Q` a configurable number of times (default is 3).
 *   **`Ctrl-F`**: Search for text within the file.
