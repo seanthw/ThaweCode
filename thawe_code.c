@@ -1512,12 +1512,15 @@ int main(int argc, char *argv[]) {
 
   initEditor();
   load_config();
+
   if (argc >= 2) {
-    editorOpen(argv[1]);
+    // If a filename is provided, open it in a new buffer
+    editorNewBuffer(); // Create a new buffer
+    editorOpen(argv[1]); // Open the file in the new buffer
   }
 
   editorSetStatusMessage(
-    "C-s:save | C-q:quit | C-f:find | C-spc:select | C-x:cut | C-k:copy | C-v:paste");
+    "C-s:save | C-q:quit | C-f:find | C-spc:select | C-x:cut | C-k:copy | C-v:paste | C-n:new | C-b:next | C-l:list");
 
   while (1) {
     editorRefreshScreen();
