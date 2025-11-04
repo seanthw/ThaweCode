@@ -18,6 +18,14 @@ To open a file, provide its name as an argument:
 
 If the file doesn't exist, it will be created. If you run `./thawe_code` without a filename, you will start with an empty, unnamed buffer.
 
+## Demo
+
+<p align="center">
+  <a href="https://asciinema.org/a/753655" target="_blank">
+    <img src="https://asciinema.org/a/753655.svg" />
+  </a>
+</p>
+
 ### Keybindings
 
 *   **`Ctrl-S`**: Save the current file.
