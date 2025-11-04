@@ -61,6 +61,7 @@ void initBuffer(struct Buffer *b);
 void editorSwitchBuffer();
 void editorShowBufferList();
 void editorCloseBuffer();
+void editorShowHelp();
 
 /*** terminal ***/
 
@@ -923,6 +924,54 @@ void editorCloseBuffer() {
   editorSetStatusMessage("Buffer closed.");
 }
 
+void editorShowHelp() {
+  int width = 50;
+  int height = 21;
+  int start_y = (E.screenrows - height) / 2;
+  int start_x = (E.screencols - width) / 2;
+
+  const char *help_lines[] = {
+    "ThaweCode Help",
+    "",
+    "Ctrl-S: Save file",
+    "Ctrl-Q: Quit / Close buffer",
+    "Ctrl-F: Find text",
+    "Ctrl-G: Show this help",
+    "",
+    "Ctrl-N: New buffer",
+    "Ctrl-B: Next buffer",
+    "Ctrl-L: List buffers",
+    "",
+    "Ctrl-Space: Toggle selection",
+    "Ctrl-X: Cut selection",
+    "Ctrl-K: Copy selection",
+    "Ctrl-V: Paste from clipboard",
+    "",
+    "Ctrl-U: Undo",
+    "Ctrl-R: Redo",
+  };
+  int num_lines = sizeof(help_lines) / sizeof(help_lines[0]);
+
+  attron(A_REVERSE);
+  for (int i = 0; i < height; i++) {
+    mvprintw(start_y + i, start_x, "%*s", width, " ");
+  }
+
+  for (int i = 0; i < num_lines; i++) {
+    mvprintw(start_y + 1 + i, start_x + 2, "%s", help_lines[i]);
+  }
+  mvprintw(start_y + height - 2, start_x + 2, "Press any key to continue...");
+  attroff(A_REVERSE);
+  refresh();
+
+  while (1) {
+    int c = getch();
+    if (c != KEY_RESIZE) {
+      break;
+    }
+  }
+}
+
 void editorSave() {
   if (CURRENT_BUFFER->filename == NULL) {
     CURRENT_BUFFER->filename = editorPrompt("Save as: %s (ESC to cancel)", NULL);
@@ -1450,6 +1499,10 @@ void editorProcessKeypress() {
       editorShowBufferList();
       break;
 
+    case CTRL_KEY('g'):
+      editorShowHelp();
+      break;
+
     case HOME_KEY:
       CURRENT_BUFFER->cx = 0;
       break;
@@ -1567,7 +1620,7 @@ int main(int argc, char *argv[]) {
   }
 
   editorSetStatusMessage(
-    "C-s:save | C-q:quit | C-f:find | C-spc:select | C-x:cut | C-k:copy | C-v:paste | C-n:new | C-b:next | C-l:list");
+    "Ctrl-S: Save | Ctrl-Q: Quit | Ctrl-F: Find | Ctrl-G: Help");
 
   while (1) {
     editorRefreshScreen();
